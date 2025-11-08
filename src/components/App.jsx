@@ -1,68 +1,13 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { nanoid } from "nanoid";
-
 import ContactForm from "./ContactForm";
 import ContactList from "./ContactList";
 import Filter from "./Filter";
-
-const initialContacts = [
-  { id: "id-1", name: "Rosie Simpson", number: "459-12-56" },
-  { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
-  { id: "id-3", name: "Eden Clements", number: "645-17-79" },
-  { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
-];
-
-const getInitialContacts = () => {
-  const savedContacts = localStorage.getItem("contacts");
-  return savedContacts ? JSON.parse(savedContacts) : initialContacts;
-};
+import { useLocalStorageReducer } from "../hooks/useLocalStorageReducer";
+import { useFilter } from "../hooks/useFilter";
 
 export default function App() {
-  const [contacts, setContacts] = useState(getInitialContacts);
-  const [filter, setFilter] = useState("");
-
-  useEffect(() => {
-    localStorage.setItem("contacts", JSON.stringify(contacts));
-  }, [contacts]);
-
-  const addContact = useCallback(
-    ({ name, number }) => {
-      const isNameInContacts = contacts.some(
-        (contact) => contact.name.toUpperCase() === name.toUpperCase()
-      );
-
-      if (isNameInContacts) {
-        alert(`${name} is already in contacts`);
-        return;
-      }
-
-      const newContact = {
-        id: nanoid(),
-        name,
-        number,
-      };
-
-      setContacts((prevContacts) => [...prevContacts, newContact]);
-    },
-    [contacts]
-  );
-
-  const deleteContact = useCallback((contactId) => {
-    setContacts((prevContacts) =>
-      prevContacts.filter((contact) => contact.id !== contactId)
-    );
-  }, []);
-
-  const handleFilterChange = useCallback((e) => {
-    setFilter(e.target.value);
-  }, []);
-
-  const filteredContacts = useMemo(() => {
-    const normalizedFilter = filter.toUpperCase();
-    return contacts.filter((contact) =>
-      contact.name.toUpperCase().includes(normalizedFilter)
-    );
-  }, [contacts, filter]);
+  const { contacts, addContact, deleteContact } =
+    useLocalStorageReducer("contacts");
+  const { filter, handleFilterChange, filteredContacts } = useFilter(contacts);
 
   return (
     <section className="min-h-screen bg-purple-100 p-8 flex flex-col items-center justify-center select-none">
